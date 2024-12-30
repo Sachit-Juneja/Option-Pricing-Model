@@ -1,5 +1,7 @@
 import streamlit as st
 import numpy as np
+from option_visualization import plot_price_paths, plot_payoff, plot_greeks_vs_parameter
+
 
 def european_option_pricing(S0, K, r, T, sigma, num_simulations, option_type):
     Z = np.random.standard_normal(num_simulations)
@@ -117,3 +119,33 @@ elif option_type == "Barrier":
         st.write(f"**Theta**: {theta:.4f}")
         st.write(f"**Vega**: {vega:.4f}")
         st.write(f"**Rho**: {rho:.4f}")
+
+# Visualization options
+st.sidebar.subheader("Visualization Options")
+if st.sidebar.checkbox("Show Simulated Price Paths"):
+    num_paths = st.sidebar.slider("Number of Paths to Simulate", min_value=10, max_value=1000, value=100)
+    plot_price_paths(S0, r, T, sigma, num_paths)
+
+if st.sidebar.checkbox("Show Option Payoff"):
+    plot_payoff(S0, K, option_subtype)
+
+if st.sidebar.checkbox("Show Greek Sensitivity"):
+    greek_name = st.sidebar.selectbox("Select Greek", ["Delta", "Gamma", "Theta", "Vega", "Rho"])
+    parameter_name = st.sidebar.selectbox("Parameter to Vary", ["S0", "sigma", "r", "T", "K"])
+    parameter_min = st.sidebar.number_input(f"Min {parameter_name.capitalize()}", value=0.5 * eval(parameter_name))
+    parameter_max = st.sidebar.number_input(f"Max {parameter_name.capitalize()}", value=1.5 * eval(parameter_name))
+    parameter_steps = st.sidebar.slider("Steps", min_value=10, max_value=100, value=50)
+    parameter_range = np.linspace(parameter_min, parameter_max, parameter_steps)
+
+    # Mapping Greek names to calculation functions
+    greek_function_map = {
+        "Delta": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[0],
+        "Gamma": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[1],
+        "Theta": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[2],
+        "Vega": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[3],
+        "Rho": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[4],
+    }
+    greek_function = greek_function_map[greek_name]
+    
+    plot_greeks_vs_parameter(S0, K, r, T, sigma, num_simulations, option_subtype, greek_function, parameter_name, parameter_range)
+
