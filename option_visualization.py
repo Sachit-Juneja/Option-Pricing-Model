@@ -39,10 +39,10 @@ def plot_payoff(S0, K, option_type):
 def plot_greeks_vs_parameter(S0, K, r, T, sigma, num_simulations, option_type, greek_function, parameter_name, parameter_range):
     greek_values = []
     for parameter in parameter_range:
-        kwargs = {parameter_name: parameter}
-        greek = greek_function(S0, K, r, T, sigma, num_simulations, option_type, **kwargs)
+        greek = greek_function(S0, K, r, T, sigma, parameter, parameter_name)  # Pass updated parameter
         greek_values.append(greek)
     
+    # Plotting
     plt.figure(figsize=(10, 6))
     plt.plot(parameter_range, greek_values, label=f"{parameter_name.capitalize()} Sensitivity")
     plt.title(f"Greek Sensitivity to {parameter_name.capitalize()}")

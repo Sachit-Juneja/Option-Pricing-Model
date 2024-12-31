@@ -64,12 +64,20 @@ if st.sidebar.checkbox("Show Greek Sensitivity"):
     parameter_steps = st.sidebar.slider("Steps", min_value=10, max_value=100, value=50)
     parameter_range = np.linspace(parameter_min, parameter_max, parameter_steps)
 
-    greek_function_map = {
-        "Delta": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[0],
-        "Gamma": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[1],
-        "Theta": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[2],
-        "Vega": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[3],
-        "Rho": lambda *args, **kwargs: calculate_greeks(*args, **kwargs)[4],
-    }
-    greek_function = greek_function_map[greek_name]
-    plot_greeks_vs_parameter(S0, K, r, T, sigma, num_simulations, option_subtype, greek_function, parameter_name, parameter_range)
+    # Map Greek names to specific index in calculate_greeks output
+    greek_index_map = {"Delta": 0, "Gamma": 1, "Theta": 2, "Vega": 3, "Rho": 4}
+    greek_index = greek_index_map[greek_name]
+
+    # Define a function to compute the Greek for a given parameter value
+    def greek_function(S0, K, r, T, sigma, parameter_value, parameter_name):
+        params = {"S0": S0, "K": K, "r": r, "T": T, "sigma": sigma}
+        params[parameter_name] = parameter_value  # Dynamically update the parameter
+        return calculate_greeks(
+            european_option_pricing,  # Adjust for Asian or Barrier as needed
+            params["S0"], params["K"], params["r"], params["T"], params["sigma"],
+            num_simulations, option_subtype
+        )[greek_index]
+
+    # Pass the function and parameter range to plot_greeks_vs_parameter
+    plot_greeks_vs_parameter(S0, K, r, T, sigma, num_simulations, option_subtype,
+                             greek_function, parameter_name, parameter_range)
