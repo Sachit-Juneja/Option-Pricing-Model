@@ -1,4 +1,5 @@
 import streamlit as st
+import numpy as np
 from backend import european_option_pricing, asian_option_pricing, barrier_option_pricing
 from utils import calculate_greeks
 from option_visualization import plot_price_paths, plot_payoff, plot_greeks_vs_parameter
